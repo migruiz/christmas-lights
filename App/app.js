@@ -27,11 +27,11 @@ client.on('message',function (topic, message) {
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
 async function executeMultipleCommandsAsync(codes) {
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
         for (codeIndex = 0; codeIndex < codes.length;codeIndex++) { 
             var code=codes[codeIndex];
              await executeSingleCommandAsync(code);
-             await timeout(250);
+             await timeout(500);
         }
 
 
