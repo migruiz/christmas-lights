@@ -3,10 +3,6 @@ var spawn = require('child_process').spawn;
 
 var mqtt = require('mqtt')
 
-
-
-
-
 var client  = mqtt.connect(global.mtqqURL)
  
 client.on('connect', function () {
