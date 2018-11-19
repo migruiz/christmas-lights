@@ -31,7 +31,7 @@ async function executeMultipleCommandsAsync(codes) {
         for (codeIndex = 0; codeIndex < codes.length;codeIndex++) { 
             var code=codes[codeIndex];
              await executeSingleCommandAsync(code);
-             await timeout(500);
+             await timeout(600);
         }
 
 
