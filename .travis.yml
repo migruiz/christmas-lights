@@ -6,10 +6,9 @@ services:
 
 env:
   global:
-    - PI_APP=cameras-heartbeat
+    - PI_APP=christmas-lights-trigger
   matrix:
     - PI_TYPE=rpi3
-    - PI_TYPE=zero
 
 script: bash travis.sh || travis_terminate 1;
 
