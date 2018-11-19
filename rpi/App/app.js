@@ -1,18 +1,39 @@
 var spawn = require('child_process').spawn;
-var mqtt = require('./mqttCluster.js');
 
 
-//global.mtqqURL
+var mqtt = require('mqtt')
+
+
+
+
+
+var client  = mqtt.connect(global.mtqqURL)
+ 
+client.on('connect', function () {
+  client.subscribe(global.turnOnLightsTopic)
+  client.subscribe(global.turnOffLightsTopic)
+})
+client.on('message',function (topic, message) {
+    if (topic === global.turnOnLightsTopic) {
+        executeMultipleCommandsAsync(JSON.parse(global.onCodes))
+    }
+    else  if (topic === global.turnOffLightsTopic) {
+        executeMultipleCommandsAsync(global.offCodes)
+    }
+  })
 
 
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
 async function executeMultipleCommandsAsync(codes) {
     for (var i = 0; i < 3; i++) {
-        for (var code in codes) {
-            await executeSingleCommandAsync(code);
-            await timeout(250);
+        for (codeIndex = 0; codeIndex < codes.length;codeIndex++) { 
+            var code=codes[codeIndex];
+             await executeSingleCommandAsync(code);
+             await timeout(250);
         }
+
+
     }
 }
 
@@ -33,27 +54,6 @@ function executeSingleCommandAsync(code) {
         });
     });
 }
-
-
-
-
-
-
-
-
-function reportError() {
-    console.log(Math.floor(new Date() / 1000));
-}
-
-
-function init() {
-
-    mqtt.cluster().subscribeData(global.turnOnLightsTopic, () => { executeMultipleCommandsAsync(global.SwitchOnCodes) });
-    mqtt.cluster().subscribeData(global.turnOffLightsTopic, () => { executeMultipleCommandsAsync(global.SwitchOffCodes) });
-}
-
-
-
 
 
 
