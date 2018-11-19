@@ -19,7 +19,7 @@ client.on('message',function (topic, message) {
         executeMultipleCommandsAsync(JSON.parse(global.onCodes))
     }
     else  if (topic === global.turnOffLightsTopic) {
-        executeMultipleCommandsAsync(global.offCodes)
+        executeMultipleCommandsAsync(JSON.parse(global.offCodes))
     }
   })
 
