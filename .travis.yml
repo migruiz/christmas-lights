@@ -1,0 +1,19 @@
+sudo: required
+
+
+services:
+  - docker
+
+env:
+  global:
+    - PI_APP=cameras-heartbeat
+  matrix:
+    - PI_TYPE=rpi3
+    - PI_TYPE=zero
+
+script: bash travis.sh || travis_terminate 1;
+
+
+notifications:
+   email:
+      - mig.ruiz@gmail.com

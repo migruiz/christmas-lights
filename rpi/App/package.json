@@ -1,0 +1,12 @@
+{
+  "name": "door-sensor-readings-file-monitor",
+  "version": "0.0.0",
+  "description": "DoorSensorReadingsFileMonitor",
+  "main": "app.js",
+  "author": {
+    "name": "piscos"
+  },
+  "dependencies": {
+    "amqplib": "^0.5.1" 
+  }
+}
