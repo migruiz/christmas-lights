@@ -2,6 +2,11 @@ var spawn = require('child_process').spawn;
 
 
 var mqtt = require('mqtt')
+global.mtqqURL=process.env.mtqqURL
+global.turnOnLightsTopic=process.env.turnOnLightsTopic
+global.turnOffLightsTopic=process.env.turnOffLightsTopic
+global.onCodes=process.env.onCodes
+global.offCodes=process.env.offCodes
 
 var client  = mqtt.connect(global.mtqqURL)
  
@@ -22,6 +27,7 @@ client.on('message',function (topic, message) {
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
 async function executeMultipleCommandsAsync(codes) {
+    return;
     for (var i = 0; i < 3; i++) {
         for (codeIndex = 0; codeIndex < codes.length;codeIndex++) { 
             var code=codes[codeIndex];
