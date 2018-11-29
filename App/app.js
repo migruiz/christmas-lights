@@ -5,8 +5,12 @@ var mqtt = require('mqtt')
 global.mtqqURL=process.env.mtqqURL
 global.turnOnLightsTopic=process.env.turnOnLightsTopic
 global.turnOffLightsTopic=process.env.turnOffLightsTopic
-global.onCodes=process.env.onCodes
-global.offCodes=process.env.offCodes
+global.onCodes=JSON.parse(process.env.onCodes)
+global.offCodes=JSON.parse(process.env.offCodes)
+global.nodeId=1
+global.waitForNextCommand=500
+global.expectedSingleCommandExecTime=200
+global.roundCycles=4
 
 var client  = mqtt.connect(global.mtqqURL)
  
@@ -14,24 +18,74 @@ client.on('connect', function () {
   client.subscribe(global.turnOnLightsTopic)
   client.subscribe(global.turnOffLightsTopic)
 })
-client.on('message',function (topic, message) {
-    if (topic === global.turnOnLightsTopic) {
-        executeMultipleCommandsAsync(JSON.parse(global.onCodes))
+client.on('message',async function (topic, message) {
+    if (topic === global.turnOnLightsTopic) {    
+        if (global.nodeId==1){
+            await executeMultipleCommandsAsync(global.onCodes)
+            client.publish("lightsOnNextNode",global.nodeId+1)
+        }  
+        else{  
+            waitToSwitchLightsOn()
+        }
     }
+    else  if (topic === "lightsOnNextNode" && parseInt(message)==global.nodeId) {
+        clearTimeout(lightsOnTimeout)
+        executeMultipleCommandsAsync(global.onCodes)
+    }    
     else  if (topic === global.turnOffLightsTopic) {
-        executeMultipleCommandsAsync(JSON.parse(global.offCodes))
+        if (global.nodeId==1){
+            await executeMultipleCommandsAsync(global.offCodes)
+            client.publish("lightsOffNextNode",global.nodeId+1)
+        }  
+        else{  
+            waitToSwitchLightsOff()
+        }
     }
+    else  if (topic === "lightsOffNextNode" && parseInt(message)==global.nodeId) {
+        clearTimeout(lightsOffTimeout)
+        executeMultipleCommandsAsync(global.offCodes)
+    }  
   })
+
+var lightsOnTimeout;
+function waitToSwitchLightsOn(){
+    var expectedSingleCommandExecution=global.waitForNextCommand+global.expectedSingleCommandExecTime;
+    console.log("expectedSingleCommandExecutionOn",expectedSingleCommandExecution)
+    var expectedFullCycleExecution=global.roundCycles*global.onCodes.length*expectedSingleCommandExecution
+    console.log("expectedFullCycleExecutionOn",expectedFullCycleExecution)
+    var waitTime=(global.nodeId-1)*expectedFullCycleExecution;
+    console.log("waitTimeOn",waitTime)
+    lightsOnTimeout=setTimeout(async ()=>{ 
+       await executeMultipleCommandsAsync(global.onCodes)
+       client.publish("lightsOnNextNode",global.nodeId+1)
+    },waitTime)
+}
+
+
+
+var lightsOffTimeout;
+function waitToSwitchLightsOff(){
+    var expectedSingleCommandExecution=global.waitForNextCommand+global.expectedSingleCommandExecTime;
+    console.log("expectedSingleCommandExecutionOff",expectedSingleCommandExecution)
+    var expectedFullCycleExecution=global.roundCycles*global.offCodes.length*expectedSingleCommandExecution
+    console.log("expectedFullCycleExecutionOff",expectedFullCycleExecution)
+    var waitTime=(global.nodeId-1)*expectedFullCycleExecution;
+    console.log("waitTimeOff",waitTime)
+    lightsOffTimeout=setTimeout(async ()=>{ 
+       await executeMultipleCommandsAsync(global.offCodes)
+       client.publish("lightsOffNextNode",global.nodeId+1)
+    },waitTime)
+}
 
 
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
 async function executeMultipleCommandsAsync(codes) {
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < global.roundCycles; i++) {
         for (codeIndex = 0; codeIndex < codes.length;codeIndex++) { 
             var code=codes[codeIndex];
              await executeSingleCommandAsync(code);
-             await timeout(600);
+             await timeout(global.waitForNextCommand);
         }
 
 
