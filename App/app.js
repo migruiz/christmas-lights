@@ -26,7 +26,7 @@ client.on('message',async function (topic, message) {
     if (topic === global.turnOnLightsTopic) {    
         if (global.nodeId==1){
             await executeMultipleCommandsAsync(global.onCodes)
-            client.publish(global.lightsOnNextNodeTopic,global.nodeId+1)
+            client.publish(global.lightsOnNextNodeTopic,(global.nodeId+1).toString())
         }  
         else{  
             waitToSwitchLightsOn()
@@ -39,7 +39,7 @@ client.on('message',async function (topic, message) {
     else  if (topic === global.turnOffLightsTopic) {
         if (global.nodeId==1){
             await executeMultipleCommandsAsync(global.offCodes)
-            client.publish(global.lightsOffNextNodeTopic,global.nodeId+1)
+            client.publish(global.lightsOffNextNodeTopic,(global.nodeId+1).toString())
         }  
         else{  
             waitToSwitchLightsOff()
@@ -61,7 +61,7 @@ function waitToSwitchLightsOn(){
     console.log("waitTimeOn",waitTime)
     lightsOnTimeout=setTimeout(async ()=>{ 
        await executeMultipleCommandsAsync(global.onCodes)
-       client.publish(global.lightsOnNextNodeTopic,global.nodeId+1)
+       client.publish(global.lightsOnNextNodeTopic,(global.nodeId+1).toString())
     },waitTime)
 }
 
@@ -77,7 +77,7 @@ function waitToSwitchLightsOff(){
     console.log("waitTimeOff",waitTime)
     lightsOffTimeout=setTimeout(async ()=>{ 
        await executeMultipleCommandsAsync(global.offCodes)
-       client.publish(global.lightsOffNextNodeTopic,global.nodeId+1)
+       client.publish(global.lightsOffNextNodeTopic,(global.nodeId+1).toString())
     },waitTime)
 }
 
