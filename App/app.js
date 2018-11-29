@@ -12,7 +12,7 @@ global.offCodes=JSON.parse(process.env.offCodes)
 global.nodeId=parseInt(process.env.nodeId)
 global.waitForNextCommand=500
 global.expectedSingleCommandExecTime=400
-global.roundCycles=4
+global.roundCycles=3
 
 var client  = mqtt.connect(global.mtqqURL)
  
@@ -35,6 +35,7 @@ client.on('message',async function (topic, message) {
     else  if (topic === global.lightsOnNextNodeTopic && parseInt(message)==global.nodeId) {
         clearTimeout(lightsOnTimeout)
         await executeMultipleCommandsAsync(global.onCodes)
+        client.publish(global.lightsOnNextNodeTopic,(global.nodeId+1).toString())
     }    
     else  if (topic === global.turnOffLightsTopic) {
         if (global.nodeId==1){
@@ -48,6 +49,7 @@ client.on('message',async function (topic, message) {
     else  if (topic === global.lightsOffNextNodeTopic && parseInt(message)==global.nodeId) {
         clearTimeout(lightsOffTimeout)
         await executeMultipleCommandsAsync(global.offCodes)
+        client.publish(global.lightsOffNextNodeTopic,(global.nodeId+1).toString())
     }  
   })
 
@@ -102,7 +104,7 @@ function executeSingleCommandAsync(code) {
             , [
                 code
                 , '-l'
-                , '200'
+                , '180'
             ]);
         command.stdout.on('data', data => {
             console.log(data.toString());
