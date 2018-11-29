@@ -3,11 +3,13 @@ var spawn = require('child_process').spawn;
 
 var mqtt = require('mqtt')
 global.mtqqURL=process.env.mtqqURL
-global.turnOnLightsTopic=process.env.turnOnLightsTopic
-global.turnOffLightsTopic=process.env.turnOffLightsTopic
+global.turnOnLightsTopic="lightson"
+global.lightsOnNextNodeTopic="lightsOnNextNode"
+global.lightsOffNextNodeTopic="lightsOffNextNode"
+global.turnOffLightsTopic="lightsoff"
 global.onCodes=JSON.parse(process.env.onCodes)
 global.offCodes=JSON.parse(process.env.offCodes)
-global.nodeId=1
+global.nodeId=parseInt(process.env.nodeId)
 global.waitForNextCommand=500
 global.expectedSingleCommandExecTime=200
 global.roundCycles=4
@@ -17,33 +19,35 @@ var client  = mqtt.connect(global.mtqqURL)
 client.on('connect', function () {
   client.subscribe(global.turnOnLightsTopic)
   client.subscribe(global.turnOffLightsTopic)
+  client.subscribe(global.lightsOnNextNodeTopic)
+  client.subscribe(global.lightsOffNextNodeTopic)
 })
 client.on('message',async function (topic, message) {
     if (topic === global.turnOnLightsTopic) {    
         if (global.nodeId==1){
             await executeMultipleCommandsAsync(global.onCodes)
-            client.publish("lightsOnNextNode",global.nodeId+1)
+            client.publish(global.lightsOnNextNodeTopic,global.nodeId+1)
         }  
         else{  
             waitToSwitchLightsOn()
         }
     }
-    else  if (topic === "lightsOnNextNode" && parseInt(message)==global.nodeId) {
+    else  if (topic === global.lightsOnNextNodeTopic && parseInt(message)==global.nodeId) {
         clearTimeout(lightsOnTimeout)
-        executeMultipleCommandsAsync(global.onCodes)
+        await executeMultipleCommandsAsync(global.onCodes)
     }    
     else  if (topic === global.turnOffLightsTopic) {
         if (global.nodeId==1){
             await executeMultipleCommandsAsync(global.offCodes)
-            client.publish("lightsOffNextNode",global.nodeId+1)
+            client.publish(global.lightsOffNextNodeTopic,global.nodeId+1)
         }  
         else{  
             waitToSwitchLightsOff()
         }
     }
-    else  if (topic === "lightsOffNextNode" && parseInt(message)==global.nodeId) {
+    else  if (topic === global.lightsOffNextNodeTopic && parseInt(message)==global.nodeId) {
         clearTimeout(lightsOffTimeout)
-        executeMultipleCommandsAsync(global.offCodes)
+        await executeMultipleCommandsAsync(global.offCodes)
     }  
   })
 
@@ -57,7 +61,7 @@ function waitToSwitchLightsOn(){
     console.log("waitTimeOn",waitTime)
     lightsOnTimeout=setTimeout(async ()=>{ 
        await executeMultipleCommandsAsync(global.onCodes)
-       client.publish("lightsOnNextNode",global.nodeId+1)
+       client.publish(global.lightsOnNextNodeTopic,global.nodeId+1)
     },waitTime)
 }
 
@@ -73,7 +77,7 @@ function waitToSwitchLightsOff(){
     console.log("waitTimeOff",waitTime)
     lightsOffTimeout=setTimeout(async ()=>{ 
        await executeMultipleCommandsAsync(global.offCodes)
-       client.publish("lightsOffNextNode",global.nodeId+1)
+       client.publish(global.lightsOffNextNodeTopic,global.nodeId+1)
     },waitTime)
 }
 
