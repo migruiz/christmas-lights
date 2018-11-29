@@ -11,7 +11,7 @@ global.onCodes=JSON.parse(process.env.onCodes)
 global.offCodes=JSON.parse(process.env.offCodes)
 global.nodeId=parseInt(process.env.nodeId)
 global.waitForNextCommand=500
-global.expectedSingleCommandExecTime=200
+global.expectedSingleCommandExecTime=400
 global.roundCycles=4
 
 var client  = mqtt.connect(global.mtqqURL)
